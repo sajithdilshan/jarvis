@@ -1,0 +1,40 @@
+# Default application configuration. Env vars override these (see settings.py).
+app:
+  name: "Jarvis"
+  port: 3000
+  log_level: "info"
+
+temporal:
+  host: "temporal:7233"
+  namespace: "default"
+  task_queue: "jarvis-agent-queue"
+
+schedule:
+  cron: "*/15 8-17 * * 1-5"   # every 15 min, 8am-6pm, Mon-Fri
+  timezone: "Europe/Berlin"
+  enabled: true
+
+llm:
+  default_model:   # scheduled runs (cheap model)
+  interactive_model: # user chat interactions (advanced model) - falls back to default_model
+  model_override: null               # global override, wins over per-agent
+  temperature: 0.3
+  max_tokens: 4096
+
+postgres:
+  dsn: "postgresql://temporal:temporal@postgres:5432/jarvis"
+  pool_min_size: 2
+  pool_max_size: 10
+
+embedding:
+  model: "BAAI/bge-base-en-v1.5"
+  dim: 768
+
+# Paths below default to repo-root-relative (see settings.py) so the app runs locally
+# without Docker. In the container, override via JARVIS_MCP_CONFIG / JARVIS_UI_STATIC_DIR.
+mcp: {}
+
+ui: {}
+
+auth:
+  token_dir: "/app/auth"

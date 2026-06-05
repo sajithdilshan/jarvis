@@ -1,0 +1,37 @@
+/* ============================================================================
+   Status pulse + misc
+   ============================================================================ */
+
+/* Settings button in top bar */
+.settings-btn {
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--hairline);
+  color: var(--text-dim);
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out);
+}
+.settings-btn:hover { background: var(--surface-hi); color: var(--text); border-color: var(--hairline-hi); }
+
+.status { display: inline-flex; align-items: center; gap: 8px; color: var(--text-dim); font-size: 13px; }
+.pulse {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.4);
+  animation: pulse 1.6s var(--ease-out) infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.4); }
+  70% { box-shadow: 0 0 0 10px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.card.unknown { color: var(--text-faint); font-family: var(--font-mono); font-size: 12px; }

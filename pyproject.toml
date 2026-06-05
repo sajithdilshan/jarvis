@@ -1,0 +1,71 @@
+[project]
+name = "jarvis"
+version = "0.1.0"
+description = "Jarvis — AI agentic personal assistant (local-first)"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic-ai-slim[bedrock,openai,mcp]>=0.0.40",
+    "temporalio>=1.7",
+    "asyncpg>=0.30",
+    "pgvector>=0.3.6",
+    "sentence-transformers>=3.3",
+    "torch>=2.2",
+    "dependency-injector>=4.42",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "pyyaml>=6.0",
+    "alembic>=1.13",
+    "sqlalchemy[asyncio]>=2.0",
+    "greenlet>=3.0",
+]
+
+[project.scripts]
+jarvis = "jarvis.main:main"
+jarvis-auth = "jarvis.cli.auth:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.8",
+    "testcontainers[postgres]>=4.8",
+]
+
+# torch pulls the full CUDA stack (~2GB of nvidia-* wheels) by default on Linux, which
+# the CPU-only embedder never uses. Pin Linux installs to PyTorch's CPU wheel index.
+# macOS keeps the default PyPI wheel (Apple-Silicon build with MPS).
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jarvis"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = [
+    "B008",  # FastAPI/DI-style call defaults are sometimes intentional.
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

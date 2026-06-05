@@ -1,0 +1,332 @@
+/* ============================================================================
+   Cards — tactile rounded glass with hover lift
+   ============================================================================ */
+
+.card {
+  position: relative;
+  background: var(--surface);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur) var(--ease-spring),
+              box-shadow var(--dur) var(--ease-out),
+              border-color var(--dur) var(--ease-out),
+              background var(--dur) var(--ease-out);
+}
+/* Apple-style top highlight for depth */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), transparent 35%);
+  pointer-events: none;
+}
+.card:hover {
+  transform: translateY(-3px) scale(1.005);
+  box-shadow: var(--shadow-md), 0 0 0 1px var(--hairline-hi);
+  border-color: var(--hairline-hi);
+  background: var(--surface-hi);
+}
+
+/* Resolve affordance: wrapper anchors the button at the card's top-right corner. */
+.card-wrap { position: relative; }
+.resolve-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--hairline-hi);
+  background: var(--surface-solid);
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity var(--dur-fast) var(--ease-out),
+              transform var(--dur-fast) var(--ease-spring),
+              background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.card-wrap:hover .resolve-btn { opacity: 1; transform: scale(1); }
+.resolve-btn:hover { background: var(--green); color: #fff; border-color: transparent; box-shadow: 0 2px 8px rgba(48, 209, 88, 0.3); }
+.resolve-btn:active { transform: scale(0.85); }
+
+
+/* ============================================================================
+   Activity tray — compact, pinned summary of did/ask entries above the briefing
+   ============================================================================ */
+
+.activity-tray {
+  margin-bottom: 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  background: rgba(255, 255, 255, 0.02);
+}
+.activity-tray.has-ask {
+  border-color: var(--rose);
+  background: rgba(255, 55, 95, 0.04);
+}
+.activity-bar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+}
+.activity-bar:hover { background: var(--surface); }
+.activity-icon { font-size: 13px; }
+.activity-summary { flex: 1; font-weight: 500; }
+.activity-tray.has-ask .activity-summary { color: var(--rose); }
+.activity-chevron { color: var(--text-faint); font-size: 11px; }
+.activity-body {
+  max-height: 240px;
+  overflow-y: auto;
+  border-top: 1px solid var(--hairline);
+  padding: 4px 0;
+}
+
+/* ============================================================================
+   Briefing entry — the new primary UI element
+   ============================================================================ */
+
+.briefing-entry {
+  position: relative;
+  padding: 14px 18px;
+  border-radius: var(--r-sm);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid transparent;
+  transition: background var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out);
+  cursor: default;
+}
+.briefing-entry[role="button"] { cursor: pointer; }
+.briefing-entry:hover {
+  background: var(--surface);
+  border-color: var(--hairline);
+}
+
+/* Priority visual treatment */
+.briefing-entry.priority-high {
+  border-left: 3px solid var(--rose);
+  background: rgba(255, 55, 95, 0.04);
+}
+.briefing-entry.priority-high:hover {
+  background: rgba(255, 55, 95, 0.08);
+}
+.briefing-entry.priority-high .entry-narrative { font-weight: 600; }
+.briefing-entry.priority-low { opacity: 0.75; }
+.briefing-entry.priority-low:hover { opacity: 1; }
+
+.entry-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.entry-icon {
+  flex: none;
+  font-size: 14px;
+  line-height: 1.5;
+  width: 20px;
+  text-align: center;
+}
+.entry-icon.noticed { color: var(--accent); }
+.entry-icon.did { color: var(--green); }
+
+.entry-body { flex: 1; min-width: 0; }
+
+.entry-narrative {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.entry-timestamp {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-faint);
+  margin-top: 3px;
+}
+
+.entry-rule {
+  display: block;
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.entry-refs {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.entry-ref {
+  font-size: 12.5px;
+  color: var(--blue);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.entry-ref:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.entry-source {
+  flex: none;
+  font-size: 14px;
+  opacity: 0.6;
+}
+
+.entry-expand-hint {
+  position: absolute;
+  bottom: 8px;
+  right: 14px;
+  font-size: 11px;
+  color: var(--text-faint);
+  opacity: 0;
+  transition: opacity var(--dur-fast);
+}
+.briefing-entry:hover .entry-expand-hint { opacity: 1; }
+
+.entry-context {
+  margin-top: 10px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--hairline);
+  animation: rise var(--dur) var(--ease-out) both;
+}
+.entry-context-md {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-dim);
+}
+.entry-context-md p { margin: 0 0 0.5em; }
+.entry-context-md p:last-child { margin-bottom: 0; }
+.entry-context-md code {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+.entry-context-md pre {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.6em 0.8em;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 0.4em 0;
+}
+.entry-context-kv {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  font-size: 13px;
+}
+.kv-row { display: contents; }
+.kv-row dt {
+  color: var(--text-faint);
+  text-transform: capitalize;
+  font-weight: 500;
+}
+.kv-row dd { margin: 0; color: var(--text-dim); }
+
+/* --- Show more / stale group --- */
+.show-more {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 4px;
+  background: none;
+  border: 1px dashed var(--hairline-hi);
+  border-radius: var(--r-sm);
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
+}
+.show-more:hover { background: var(--surface); color: var(--text); border-color: var(--accent); }
+
+.stale-group {
+  margin-top: 12px;
+}
+.stale-toggle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-faint);
+  cursor: pointer;
+  list-style: none;
+  padding: 8px 4px;
+  transition: color var(--dur-fast);
+}
+.stale-toggle::-webkit-details-marker { display: none; }
+.stale-toggle::before {
+  content: "›";
+  display: inline-block;
+  margin-right: 6px;
+  transition: transform var(--dur) var(--ease-spring);
+}
+.stale-group[open] .stale-toggle::before { transform: rotate(90deg); }
+.stale-toggle:hover { color: var(--text-dim); }
+
+/* --- Calm empty state with daily summary --- */
+.empty-state.calm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  text-align: center;
+}
+.empty-state.calm::before { display: none; }
+.calm-icon {
+  font-size: 28px;
+  color: var(--accent);
+  opacity: 0.6;
+  margin-bottom: 14px;
+  animation: gentle-pulse 3s var(--ease-out) infinite alternate;
+}
+@keyframes gentle-pulse {
+  from { opacity: 0.4; transform: scale(0.95); }
+  to { opacity: 0.7; transform: scale(1.05); }
+}
+.calm-text {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-dim);
+}
+.calm-summary {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+/* Empty / friendly states */
+.empty-state {
+  color: var(--text-faint);
+  text-align: center;
+  padding: 26px 18px;
+  font-size: 14px;
+}

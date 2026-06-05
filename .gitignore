@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# uv
+# (uv.lock IS committed)
+
+# Env / secrets
+.env
+
+# Frontend (Phase 3)
+web/node_modules/
+web/dist/
+
+# Local data (host bind-mounts live under ~/.jarvis, but ignore any stray local copies)
+data/
+*.dump
+
+# Platform MCP binary fetched locally (lives in the Docker image otherwise)
+scripts/github-mcp-server
+
+# OS / IDE
+.DS_Store
+
+tmp/
+.idea/
+.claude/
