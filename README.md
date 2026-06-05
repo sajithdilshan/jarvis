@@ -1,4 +1,4 @@
-# Jarvis
+# [Jarvis](https://sajith.me/jarvis/)
 
 Local-first AI agentic personal assistant. Jarvis polls your work sources (Gmail,
 Slack, GitHub, Jira/Confluence, Google Calendar) on a schedule, reasons over what
