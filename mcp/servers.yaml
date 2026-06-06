@@ -9,6 +9,15 @@
 #   deny_tools:
 #     - some_noisy_tool
 servers:
+  # Local Python datetime MCP server (stdio). Ships in the image under
+  # src/jarvis/mcp_servers/ and runs via the uv-managed interpreter. No external
+  # process or auth — pure date/time/timezone helpers.
+  datetime:
+    type: stdio
+    command: "uv"
+    args: ["run", "python", "-m", "jarvis.mcp_servers.datetime_server"]
+    timeout: 30
+
   # Shared by gmail (and later calendar) agents.
   # Self-hosted Gmail MCP server (stdio). It reads OAuth credentials + the cached
   # token from ~/.gmail-mcp/ (mounted into the container at /root/.gmail-mcp).
