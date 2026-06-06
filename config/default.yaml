@@ -29,6 +29,7 @@ postgres:
 embedding:
   model: "BAAI/bge-base-en-v1.5"
   dim: 768
+  dedup_threshold: 0.92   # cosine score at/above which a new fact bumps an existing chunk
 
 # Paths below default to repo-root-relative (see settings.py) so the app runs locally
 # without Docker. In the container, override via JARVIS_MCP_CONFIG / JARVIS_UI_STATIC_DIR.

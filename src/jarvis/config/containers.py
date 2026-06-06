@@ -80,6 +80,7 @@ class Container(containers.DeclarativeContainer):
         chunk_repo=memory_chunk_repo,
         raw_data_repo=raw_data_repo,
         embedder=embedder,
+        dedup_threshold=config.embedding.dedup_threshold,
     )
 
     telemetry_service = providers.Singleton(

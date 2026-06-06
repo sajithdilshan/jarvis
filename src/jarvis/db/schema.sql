@@ -20,13 +20,12 @@ CREATE TABLE IF NOT EXISTS memory_chunks (
     id          TEXT PRIMARY KEY,
     content     TEXT NOT NULL,              -- the embedded text (lets us re-embed)
     embedding   VECTOR(768) NOT NULL,
-    source      TEXT,
     category    TEXT,                       -- communication|task|decision|preference
     entities    TEXT[] NOT NULL DEFAULT '{}',
     importance  TEXT,                       -- low|medium|high
-    confidence  REAL,                       -- for preferences
-    extra       JSONB NOT NULL DEFAULT '{}',-- learned_from, observation_count, etc.
-    raw_data_id TEXT REFERENCES raw_data(id) ON DELETE SET NULL,
+    confidence  REAL,                       -- derived from observation_count: 1 - 0.5^count
+    observation_count INT NOT NULL DEFAULT 1,-- times this fact has been observed (semantic dedup)
+    extra       JSONB NOT NULL DEFAULT '{}',
     session_id  TEXT,
     ttl_days    INT,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),

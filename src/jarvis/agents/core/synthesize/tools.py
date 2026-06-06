@@ -11,9 +11,21 @@ def register_tools(agent: Agent) -> None:
     """Attach the synthesize agent's tools."""
 
     @agent.tool
-    async def search_memory(ctx: RunContext[SynthesizeAgentDeps], query: str) -> list[dict]:
-        """Search past knowledge and interactions. Use when you need context."""
-        return await ctx.deps.memory_service.semantic_search(query)
+    async def search_memory(
+        ctx: RunContext[SynthesizeAgentDeps],
+        query: str,
+        limit: int = 10,
+        category: str | None = None,
+    ) -> list[dict]:
+        """Search past knowledge and interactions. Use when you need context.
+
+        Args:
+            query: what to look for (matched semantically against stored facts).
+            limit: max results to return (default 10).
+            category: optional filter — one of communication | task | decision |
+                preference. Omit to search all categories.
+        """
+        return await ctx.deps.memory_service.semantic_search(query, limit, category)
 
     @agent.tool
     async def store_memory(

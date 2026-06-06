@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import Integer, func, select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
@@ -25,11 +25,10 @@ class MemoryChunkRepo:
             MemoryChunk.entities,
             MemoryChunk.importance,
             MemoryChunk.confidence,
-            MemoryChunk.raw_data_id,
+            MemoryChunk.observation_count,
             MemoryChunk.extra,
             MemoryChunk.created_at,
             MemoryChunk.updated_at,
-            MemoryChunk.extra["observation_count"].astext.cast(Integer).label("observation_count"),
             score,
         )
         if category is not None:
@@ -38,6 +37,11 @@ class MemoryChunkRepo:
         async with self._sm() as session:
             rows = (await session.execute(stmt)).mappings().all()
         return [dict(r) for r in rows]
+
+    # confidence is derived from how often a fact is observed: 1 - 0.5^count.
+    @staticmethod
+    def _confidence(count):
+        return 1 - func.power(0.5, count)
 
     async def upsert(
         self,
@@ -48,11 +52,11 @@ class MemoryChunkRepo:
         category: str,
         entities: list[str],
         importance: str,
-        confidence: float | None,
-        raw_data_id: str | None,
         session_id: str,
         extra: dict,
     ) -> None:
+        """Insert a new chunk, or bump it as a re-observation if the id already exists
+        (byte-identical content collides on the deterministic id)."""
         stmt = insert(MemoryChunk).values(
             id=chunk_id,
             content=content,
@@ -60,18 +64,18 @@ class MemoryChunkRepo:
             category=category,
             entities=entities,
             importance=importance,
-            confidence=confidence,
-            raw_data_id=raw_data_id,
+            confidence=0.5,
+            observation_count=1,
             session_id=session_id,
             extra=extra,
         )
+        next_count = MemoryChunk.observation_count + 1
         stmt = stmt.on_conflict_do_update(
             index_elements=[MemoryChunk.id],
             set_={
-                "content": stmt.excluded.content,
-                "embedding": stmt.excluded.embedding,
                 "importance": stmt.excluded.importance,
-                "confidence": stmt.excluded.confidence,
+                "observation_count": next_count,
+                "confidence": self._confidence(next_count),
                 "extra": stmt.excluded.extra,
                 "updated_at": func.now(),
             },
@@ -79,17 +83,16 @@ class MemoryChunkRepo:
         async with self._sm() as session, session.begin():
             await session.execute(stmt)
 
-    async def update_preference(
-        self, chunk_id: str, confidence: float, observation_count: int
-    ) -> None:
+    async def bump_observation(self, chunk_id: str) -> None:
+        """Record another observation of an existing fact (matched semantically, not by
+        id): increment the count, recompute confidence, keep the canonical content."""
+        next_count = MemoryChunk.observation_count + 1
         stmt = (
             update(MemoryChunk)
             .where(MemoryChunk.id == chunk_id)
             .values(
-                confidence=confidence,
-                extra=MemoryChunk.extra.op("||")(
-                    func.jsonb_build_object("observation_count", observation_count)
-                ),
+                observation_count=next_count,
+                confidence=self._confidence(next_count),
                 updated_at=func.now(),
             )
         )

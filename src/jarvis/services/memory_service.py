@@ -17,10 +17,17 @@ from jarvis.services.embeddings import Embedder
 
 
 class MemoryService:
-    def __init__(self, chunk_repo: MemoryChunkRepo, raw_data_repo: RawDataRepo, embedder: Embedder):
+    def __init__(
+        self,
+        chunk_repo: MemoryChunkRepo,
+        raw_data_repo: RawDataRepo,
+        embedder: Embedder,
+        dedup_threshold: float = 0.92,
+    ):
         self._chunks = chunk_repo
         self._raw = raw_data_repo
         self._embedder = embedder
+        self._dedup_threshold = dedup_threshold
 
     # BGE convention: prefix the *query* for retrieval; documents are embedded as-is.
     _BGE_QUERY_PREFIX = "Represent this sentence for searching relevant passages: "
@@ -44,13 +51,20 @@ class MemoryService:
         category: str,
         entities: list[str],
         importance: str,
-        raw_data_id: str | None = None,
         session_id: str = "",
         extra: dict | None = None,
     ) -> str:
-        chunk_id = f"{category}:{hashlib.sha1(content.encode()).hexdigest()[:16]}"
+        """Store a fact. If a semantically near-identical fact already exists in the same
+        category (cosine score >= dedup_threshold), treat this as a re-observation: bump
+        that chunk's observation_count/confidence and keep its canonical text. Otherwise
+        insert a fresh chunk. Returns the id of the stored or bumped chunk."""
         vec = await self._embed(content, is_query=False)
-        extra = extra or {}
+        neighbours = await self._chunks.search_by_embedding(vec, 1, category)
+        if neighbours and neighbours[0]["score"] >= self._dedup_threshold:
+            existing_id = neighbours[0]["id"]
+            await self._chunks.bump_observation(existing_id)
+            return existing_id
+        chunk_id = f"{category}:{hashlib.sha1(content.encode()).hexdigest()[:16]}"
         await self._chunks.upsert(
             chunk_id=chunk_id,
             content=content,
@@ -58,17 +72,10 @@ class MemoryService:
             category=category,
             entities=entities,
             importance=importance,
-            confidence=extra.get("confidence"),
-            raw_data_id=raw_data_id or None,
             session_id=session_id,
-            extra=extra,
+            extra=extra or {},
         )
         return chunk_id
-
-    async def update_preference(
-        self, chunk_id: str, confidence: float, observation_count: int
-    ) -> None:
-        await self._chunks.update_preference(chunk_id, confidence, observation_count)
 
     # --- Raw data (source of truth) ---
 

@@ -48,6 +48,7 @@ class PostgresSettings(BaseModel):
 class EmbeddingSettings(BaseModel):
     model: str = "nomic-ai/nomic-embed-text-v1.5"
     dim: int = 768
+    dedup_threshold: float = 0.92  # cosine score at/above which a stored fact is a duplicate
 
 
 class MCPSettings(BaseModel):

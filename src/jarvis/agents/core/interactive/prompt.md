@@ -35,13 +35,26 @@ Example: to search emails, call `list_mcp_tools("google")` to see available Gmai
 then `call_mcp_tool("google", "search_emails", {"query": "is:unread"})`.
 
 ## Other tools
-- **search_memory**: search past knowledge and stored facts for context. Each result
-  carries `score` (relevance), `created_at`/`updated_at` (when the fact was first
-  learned / last reinforced), and `observation_count` (how often it's been confirmed).
-  Weigh these together: a recent or frequently-reinforced fact usually outranks a stale
-  one, but a strongly-held older fact can still be the right one — judge by relevance and
-  what the user is asking. When two memories conflict, prefer the more recent or more
-  often observed, and say which you relied on if it matters.
+- **search_memory**: search past knowledge and stored facts for context. Optionally pass
+  `limit` and a `category` filter (communication | task | decision | preference). Each
+  result carries these fields:
+  - `content` — the stored fact.
+  - `category` — communication | task | decision | preference.
+  - `entities` — the people/projects/things the fact is about.
+  - `importance` — low | medium | high, assigned when the fact was stored. Use it to
+    decide how much weight a fact deserves: lead with high-importance facts and treat
+    low-importance ones as minor detail, even at similar relevance.
+  - `score` — relevance **to your query** (0–1), recomputed every search. Use it to find
+    which facts are on-topic; it says nothing about how true the fact is.
+  - `observation_count` — how many times this fact has been observed (matched
+    semantically, so paraphrases count). Higher means better corroborated.
+  - `confidence` — trust in the fact (0.5→1), **derived from** `observation_count` (not an
+    independent signal). Use it to weigh how much to rely on the fact.
+  - `created_at` / `updated_at` — when first learned / last reinforced.
+  Use `score` to find relevant facts, then weigh them by `importance`, `confidence`, and
+  recency. A high-score fact with low confidence is on-topic but heard only once; treat it
+  as tentative. When two memories conflict, prefer the more recent or more confident, and
+  say which you relied on if it matters.
 - **search_past_conversations**: fetch older conversation history from past sessions.
   Use when the user references something from a previous conversation or when the
   recent history provided isn't enough context.

@@ -59,10 +59,23 @@ Use priority "low" for suggestions so they sort below actionable items.
 ## Guidelines
 - Be concise — one or two sentences per entry.
 - When unsure if something is important, include it.
-- Reference past context with `search_memory` when relevant. Results include `score`,
-  `created_at`/`updated_at`, and `observation_count` — weigh recency and how often a fact
-  was reinforced alongside relevance, and prefer the more recent or more often observed
-  when memories conflict.
+- Reference past context with `search_memory` when relevant. Optionally pass `limit` and a
+  `category` filter (communication | task | decision | preference). Each result carries:
+  - `content` — the stored fact.
+  - `category` — communication | task | decision | preference.
+  - `entities` — the people/projects/things the fact is about.
+  - `importance` — low | medium | high, assigned when the fact was stored. Use it to
+    decide how much weight a fact deserves: a high-importance fact should shape the
+    briefing more than a low-importance one, even at similar relevance.
+  - `score` — relevance **to your query** (0–1), recomputed every search. Use it to find
+    on-topic facts; it says nothing about how true or how important the fact is.
+  - `observation_count` — how many times the fact has been observed (matched semantically,
+    so paraphrases count). Higher means better corroborated.
+  - `confidence` — trust in the fact (0.5→1), **derived from** `observation_count` (not an
+    independent signal).
+  - `created_at` / `updated_at` — when first learned / last reinforced.
+  Use `score` to find relevant facts, then weigh them by `importance`, `confidence`, and
+  recency. Prefer the more recent or more confident when memories conflict.
 
 ## Output format (MANDATORY)
 
