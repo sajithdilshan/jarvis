@@ -29,16 +29,19 @@ RUN curl -fsSL https://github.com/github/github-mcp-server/releases/download/v1.
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Install dependencies (cached layer)
-COPY pyproject.toml uv.lock README.md ./
-RUN uv sync --frozen --no-dev --no-install-project
+# Install dependencies (cached layer — independent of README/source churn)
+COPY pyproject.toml uv.lock ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --no-install-project
 
 # Copy application
+COPY README.md ./
 COPY src/ ./src/
 COPY config/ ./config/
 COPY mcp/ ./mcp/
 COPY alembic.ini ./
-RUN uv sync --frozen --no-dev
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
 
 # Built SPA from the web stage (served by FastAPI at /)
 COPY --from=web /web/dist ./web/dist

@@ -21,12 +21,12 @@ Cloud OAuth client once and run a one-time browser auth that caches a refresh to
 
 ## 2. Place the OAuth client where the server expects it
 
-The server reads credentials from `~/.gmail-mcp/`:
+The server reads credentials from `~/.jarvis/mcp-auth/google/`:
 
 ```bash
-mkdir -p ~/.gmail-mcp
+mkdir -p ~/.jarvis/mcp-auth/google
 # rename the downloaded file to gcp-oauth.keys.json
-mv ~/Downloads/client_secret_*.json ~/.gmail-mcp/gcp-oauth.keys.json
+mv ~/Downloads/client_secret_*.json ~/.jarvis/mcp-auth/google/gcp-oauth.keys.json
 ```
 
 ## 3. Run the one-time auth (on the host, opens a browser)
@@ -35,21 +35,25 @@ mv ~/Downloads/client_secret_*.json ~/.gmail-mcp/gcp-oauth.keys.json
 jarvis-auth gmail
 ```
 
-This wraps `npx -y @gongrzhe/server-gmail-autoauth-mcp auth` (and first checks that
-`~/.gmail-mcp/gcp-oauth.keys.json` exists). You can also run the raw command directly:
+This wraps `npx -y @gongrzhe/server-gmail-autoauth-mcp auth`, first checking that the
+client keys exist and passing the paths via `GMAIL_OAUTH_PATH` / `GMAIL_CREDENTIALS_PATH`
+(read from `mcp/servers.yaml`). To force a fresh login after the token is revoked, run
+`jarvis-auth gmail --force`. You can also run the raw command directly:
 
 ```bash
+GMAIL_OAUTH_PATH=~/.jarvis/mcp-auth/google/gcp-oauth.keys.json \
+GMAIL_CREDENTIALS_PATH=~/.jarvis/mcp-auth/google/credentials.json \
 npx -y @gongrzhe/server-gmail-autoauth-mcp auth
 ```
 
 - A browser opens → pick your Google account → approve.
-- On success it writes `~/.gmail-mcp/credentials.json` (the cached **refresh token**).
+- On success it writes `credentials.json` (the cached **refresh token**).
 - This file is what every later run uses — you won't need the browser again.
 
 After this you have:
 
 ```
-~/.gmail-mcp/
+~/.jarvis/mcp-auth/google/
 ├── gcp-oauth.keys.json     # OAuth client (from Google Cloud)
 └── credentials.json        # cached refresh token (created by `auth`)
 ```
@@ -63,13 +67,16 @@ google:
   type: stdio
   command: "npx"
   args: ["-y", "@gongrzhe/server-gmail-autoauth-mcp"]
+  env:
+    GMAIL_OAUTH_PATH: "${HOME}/.jarvis/mcp-auth/google/gcp-oauth.keys.json"
+    GMAIL_CREDENTIALS_PATH: "${HOME}/.jarvis/mcp-auth/google/credentials.json"
 ```
 
-- **Local run** (`uv run python -m jarvis.main`): works as long as `~/.gmail-mcp/` exists
-  and `npx` (Node 18+) is on your PATH.
+- **Local run** (`uv run python -m jarvis.main`): works as long as
+  `~/.jarvis/mcp-auth/google/` exists and `npx` (Node 18+) is on your PATH.
 - **Docker**: the Dockerfile installs Node, and `docker-compose.yml` mounts
-  `~/.gmail-mcp` into the container at `/root/.gmail-mcp`. Do the `auth` step on the host
-  first; the container reuses the cached token.
+  `~/.jarvis/mcp-auth` into the container at `/root/.jarvis/mcp-auth`. Do the `auth` step
+  on the host first; the container reuses the cached token.
 
 ## 5. Verify
 
@@ -90,6 +97,6 @@ failing to connect.
 ## Security note
 
 This server gets full read/write access to your Gmail (send, modify, delete, filters).
-The credentials stay on your machine (`~/.gmail-mcp/`), never in the repo or env files.
+The credentials stay on your machine (`~/.jarvis/mcp-auth/google/`), never in the repo or env files.
 Review the package before trusting it. (Jarvis intentionally uses full access so the
 assistant can act on mail, not just read it.)

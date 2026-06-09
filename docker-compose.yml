@@ -81,11 +81,10 @@ services:
       - ~/.aws:/root/.aws                                 # SSO profile + token cache (RW: botocore rotates role creds)
       - ~/.jarvis/auth:/app/auth:ro
       - ~/.jarvis/data/models:/root/.cache/huggingface   # cache embedding model
-      - ~/.gmail-mcp:/root/.gmail-mcp                     # Gmail MCP OAuth creds + token
-      - ~/.google-calendar-mcp:/root/.google-calendar-mcp           # Google Calendar MCP OAuth client
-      - ~/.config/google-calendar-mcp:/root/.config/google-calendar-mcp  # Google Calendar MCP tokens
       - ~/.jarvis/data/slack-mcp:/root/.cache/slack-mcp-server  # Slack channel/user cache
-      - ~/.mcp-auth:/root/.mcp-auth                       # Atlassian remote-MCP OAuth token (mcp-remote)
+      # All MCP OAuth state, one dir per server (gmail/calendar/atlassian). Paths are set
+      # via each server's env in mcp/servers.yaml; $HOME there resolves to /root here.
+      - ~/.jarvis/mcp-auth:/root/.jarvis/mcp-auth
     depends_on:
       temporal:
         condition: service_started

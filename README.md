@@ -350,9 +350,9 @@ Per-source setup details live in `docs/`:
 - `docs/google-calendar-mcp-setup.md`
 - `docs/atlassian-mcp-setup.md`
 
-> OAuth flows must run on the **host** (they open a browser). The resulting tokens are
-> cached under `~/.gmail-mcp`, `~/.config/google-calendar-mcp`, `~/.mcp-auth`, etc., and
-> docker-compose mounts those directories into the container.
+> OAuth flows must run on the **host** (they open a browser). All resulting tokens are
+> cached under `~/.jarvis/mcp-auth/<server>/` (one dir per MCP server), and docker-compose
+> mounts that single directory into the container.
 
 ### 3. AWS Bedrock auth (only if using Bedrock)
 
@@ -450,7 +450,7 @@ survives container teardown.** docker-compose bind-mounts the Postgres data dire
 - To truly start fresh, delete the host directory: `rm -rf ~/.jarvis/data/postgres`.
 
 Other host-mounted state under `~/.jarvis/`: the cached embedding model
-(`~/.jarvis/data/models`) and MCP OAuth tokens (`~/.gmail-mcp`, `~/.mcp-auth`, etc.).
+(`~/.jarvis/data/models`) and MCP OAuth tokens (`~/.jarvis/mcp-auth/<server>/`).
 
 ### Schema
 
@@ -518,9 +518,9 @@ Model specs are strings: `openai:gpt-5.5`, `bedrock:<arn-or-model-id>`, `ollama:
 |-----|--------|
 | `GITHUB_TOKEN` | GitHub PAT (scopes: repo, notifications, user). |
 | `SLACK_MCP_XOXC_TOKEN` / `SLACK_MCP_XOXD_TOKEN` | Slack browser session tokens (see `docs/slack-mcp-setup.md`). |
-| *(Gmail)* | OAuth via `~/.gmail-mcp/` — not an env var. Run `jarvis-auth gmail`. |
-| *(Calendar)* | OAuth via `~/.config/google-calendar-mcp/` — run `jarvis-auth calendar`. |
-| *(Atlassian)* | OAuth via `~/.mcp-auth/` — run `jarvis-auth atlassian`. |
+| *(Gmail)* | OAuth via `~/.jarvis/mcp-auth/google/` — not an env var. Run `jarvis-auth gmail`. |
+| *(Calendar)* | OAuth via `~/.jarvis/mcp-auth/google-calendar/` — run `jarvis-auth calendar`. |
+| *(Atlassian)* | OAuth via `~/.jarvis/mcp-auth/atlassian/` — run `jarvis-auth atlassian`. |
 
 ### Schedule
 

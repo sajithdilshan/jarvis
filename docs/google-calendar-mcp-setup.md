@@ -30,9 +30,9 @@ The server reads the OAuth client credentials via the `GOOGLE_OAUTH_CREDENTIALS`
 variable. Create the directory and place the file:
 
 ```bash
-mkdir -p ~/.google-calendar-mcp
+mkdir -p ~/.jarvis/mcp-auth/google-calendar
 # rename the downloaded file to gcp-oauth.keys.json
-mv ~/Downloads/client_secret_*.json ~/.google-calendar-mcp/gcp-oauth.keys.json
+mv ~/Downloads/client_secret_*.json ~/.jarvis/mcp-auth/google-calendar/gcp-oauth.keys.json
 ```
 
 ## 3. Run the one-time auth (on the host, opens a browser)
@@ -41,25 +41,26 @@ mv ~/Downloads/client_secret_*.json ~/.google-calendar-mcp/gcp-oauth.keys.json
 jarvis-auth calendar
 ```
 
-This wraps `npx -y @cocal/google-calendar-mcp auth` (and first checks that
-`~/.google-calendar-mcp/gcp-oauth.keys.json` exists, passing it via `GOOGLE_OAUTH_CREDENTIALS`).
-You can also run the raw command directly:
+This wraps `npx -y @cocal/google-calendar-mcp auth`, first checking that the client keys
+exist and passing the paths via `GOOGLE_OAUTH_CREDENTIALS` / `GOOGLE_CALENDAR_MCP_TOKEN_PATH`
+(read from `mcp/servers.yaml`). To force a fresh login after the token is revoked, run
+`jarvis-auth calendar --force`. You can also run the raw command directly:
 
 ```bash
-GOOGLE_OAUTH_CREDENTIALS=~/.google-calendar-mcp/gcp-oauth.keys.json npx -y @cocal/google-calendar-mcp auth
+GOOGLE_OAUTH_CREDENTIALS=~/.jarvis/mcp-auth/google-calendar/gcp-oauth.keys.json \
+GOOGLE_CALENDAR_MCP_TOKEN_PATH=~/.jarvis/mcp-auth/google-calendar/tokens.json \
+npx -y @cocal/google-calendar-mcp auth
 ```
 
 - A browser opens → pick your Google account → approve Calendar access.
-- On success it writes the cached **refresh token** to `~/.config/google-calendar-mcp/tokens.json`.
+- On success it writes the cached **refresh token** to `tokens.json`.
 - This file is what every later run uses — you won't need the browser again.
 
 After this you have:
 
 ```
-~/.google-calendar-mcp/
-└── gcp-oauth.keys.json              # OAuth client (from Google Cloud)
-
-~/.config/google-calendar-mcp/
+~/.jarvis/mcp-auth/google-calendar/
+├── gcp-oauth.keys.json              # OAuth client (from Google Cloud)
 └── tokens.json                      # cached refresh token (created by `auth`)
 ```
 
@@ -74,23 +75,24 @@ google-calendar:
   args: ["-y", "@cocal/google-calendar-mcp"]
   env:
     # $HOME works in both Docker (/root) and local (/Users/xxx)
-    GOOGLE_OAUTH_CREDENTIALS: "${HOME}/.google-calendar-mcp/gcp-oauth.keys.json"
+    GOOGLE_OAUTH_CREDENTIALS: "${HOME}/.jarvis/mcp-auth/google-calendar/gcp-oauth.keys.json"
+    GOOGLE_CALENDAR_MCP_TOKEN_PATH: "${HOME}/.jarvis/mcp-auth/google-calendar/tokens.json"
   deny_tools:
     - delete-event
     - manage-accounts
 ```
 
-The `GOOGLE_OAUTH_CREDENTIALS` env var tells the server where to find the OAuth client JSON.
-Using `${HOME}` makes it work in both Docker (`/root`) and local environments.
+`GOOGLE_OAUTH_CREDENTIALS` points the server at the OAuth client JSON, and
+`GOOGLE_CALENDAR_MCP_TOKEN_PATH` at the cached token. Using `${HOME}` makes both work in
+Docker (`/root`) and local environments.
 
 ### Docker
 
-`docker-compose.yml` mounts two directories into the container:
+`docker-compose.yml` mounts the shared MCP auth base into the container:
 
 ```yaml
 volumes:
-  - ~/.google-calendar-mcp:/root/.google-calendar-mcp           # OAuth client JSON
-  - ~/.config/google-calendar-mcp:/root/.config/google-calendar-mcp  # cached tokens
+  - ~/.jarvis/mcp-auth:/root/.jarvis/mcp-auth   # all MCP OAuth state (one dir per server)
 ```
 
 Do the `auth` step on the host first; the container reuses the cached token.
@@ -102,11 +104,13 @@ jarvis-auth status
 ```
 
 You should see `✓ google-calendar OAuth token cached` — this checks the cached token at
-`~/.config/google-calendar-mcp/tokens.json`. For a deeper check that the server starts and
-lists tools (Ctrl-C to exit):
+`~/.jarvis/mcp-auth/google-calendar/tokens.json`. For a deeper check that the server starts
+and lists tools (Ctrl-C to exit):
 
 ```bash
-GOOGLE_OAUTH_CREDENTIALS=~/.google-calendar-mcp/gcp-oauth.keys.json npx -y @cocal/google-calendar-mcp
+GOOGLE_OAUTH_CREDENTIALS=~/.jarvis/mcp-auth/google-calendar/gcp-oauth.keys.json \
+GOOGLE_CALENDAR_MCP_TOKEN_PATH=~/.jarvis/mcp-auth/google-calendar/tokens.json \
+npx -y @cocal/google-calendar-mcp
 ```
 
 Or use the listing script:
@@ -136,7 +140,8 @@ The MCP server exposes these Calendar tools:
 ### "GOOGLE_OAUTH_CREDENTIALS environment variable is not set"
 Ensure you're passing the env var when running the server:
 ```bash
-GOOGLE_OAUTH_CREDENTIALS=~/.google-calendar-mcp/gcp-oauth.keys.json npx -y @cocal/google-calendar-mcp
+GOOGLE_OAUTH_CREDENTIALS=~/.jarvis/mcp-auth/google-calendar/gcp-oauth.keys.json \
+npx -y @cocal/google-calendar-mcp
 ```
 
 ### "Access blocked: This app's request is invalid"
@@ -144,25 +149,23 @@ GOOGLE_OAUTH_CREDENTIALS=~/.google-calendar-mcp/gcp-oauth.keys.json npx -y @coca
 - The OAuth client type must be **Desktop app**, not Web application.
 
 ### "Token has been expired or revoked"
-Re-run the auth flow:
+Force a fresh login (clears the cached token, then re-auths):
 ```bash
-rm ~/.config/google-calendar-mcp/tokens.json
-jarvis-auth calendar
+jarvis-auth calendar --force
 ```
 
 ### Server doesn't start in Docker
-- Verify both volume mounts exist in `docker-compose.yml`:
+- Verify the volume mount exists in `docker-compose.yml`:
   ```yaml
-  - ~/.google-calendar-mcp:/root/.google-calendar-mcp
-  - ~/.config/google-calendar-mcp:/root/.config/google-calendar-mcp
+  - ~/.jarvis/mcp-auth:/root/.jarvis/mcp-auth
   ```
-- Check that `~/.google-calendar-mcp/gcp-oauth.keys.json` exists on the host.
-- Check that `~/.config/google-calendar-mcp/tokens.json` exists on the host.
+- Check that `~/.jarvis/mcp-auth/google-calendar/gcp-oauth.keys.json` exists on the host.
+- Check that `~/.jarvis/mcp-auth/google-calendar/tokens.json` exists on the host.
 - Ensure Node 18+ is installed in the container.
 
 ## Security note
 
 This server gets read/write access to your Google Calendar (view, create, modify, delete events).
-The credentials stay on your machine (`~/.google-calendar-mcp/` and `~/.config/google-calendar-mcp/`),
-never in the repo or env files. Review the package before trusting it. Jarvis blocks `delete-event`
+The credentials stay on your machine (`~/.jarvis/mcp-auth/google-calendar/`), never in the
+repo or env files. Review the package before trusting it. Jarvis blocks `delete-event`
 and `manage-accounts` by default via `deny_tools` in `mcp/servers.yaml`.
