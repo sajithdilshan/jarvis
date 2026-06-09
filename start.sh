@@ -20,18 +20,17 @@ if [[ -f .env ]]; then
 fi
 
 # --- AWS Bedrock auth (optional) --------------------------------------------
-# Only runs when AWS_BEDROCK_ENABLED=1 (set in .env). The container uses the boto3
-# standard chain via the static AWS_* env vars that docker-compose forwards. Mint
-# short-lived creds from the SSO session so Bedrock works inside the container (SSO
-# profiles aren't usable directly in the container). Skip entirely for OpenAI/Ollama.
+# Only runs when AWS_BEDROCK_ENABLED=1 (set in .env). The container mounts ~/.aws RW
+# and reads AWS_PROFILE, so botocore auto-refreshes short-lived role creds from the
+# cached SSO token — no per-hour restart. We only need a VALID SSO session here; if
+# it's expired/missing we kick off the browser login. Skip entirely for OpenAI/Ollama.
 if [[ "${AWS_BEDROCK_ENABLED:-0}" == "1" ]]; then
-  AWS_PROFILE_NAME="${AWS_PROFILE}"
-  echo "→ Exporting AWS credentials from profile '$AWS_PROFILE_NAME'…"
+  AWS_PROFILE_NAME="${AWS_PROFILE:?Set AWS_PROFILE in .env (e.g. jarvis-bedrock)}"
+  echo "→ Ensuring a valid AWS SSO session for profile '$AWS_PROFILE_NAME'…"
   if ! aws sts get-caller-identity --profile "$AWS_PROFILE_NAME" >/dev/null 2>&1; then
-    echo "  SSO session expired or missing. Run:  aws sso login --profile $AWS_PROFILE_NAME"
-    exit 1
+    echo "  SSO session expired or missing — opening browser to log in…"
+    aws sso login --profile "$AWS_PROFILE_NAME"
   fi
-  eval "$(aws configure export-credentials --profile "$AWS_PROFILE_NAME" --format env)"
 else
   echo "→ AWS Bedrock disabled (set AWS_BEDROCK_ENABLED=1 to enable); skipping AWS auth."
 fi

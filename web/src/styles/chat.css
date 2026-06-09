@@ -14,6 +14,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -39,6 +40,7 @@
   display: flex;
   flex-direction: column;
   max-width: 76%;
+  min-width: 0;
 }
 .chat-ts-wrap.user { align-self: flex-end; align-items: flex-end; }
 .chat-ts-wrap.assistant { align-self: flex-start; align-items: flex-start; }
@@ -57,6 +59,10 @@
   font-size: 14px;
   line-height: 1.45;
   animation: bubble var(--dur) var(--ease-spring) both;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 @keyframes bubble {
   from { opacity: 0; transform: translateY(6px) scale(0.96); }
@@ -79,6 +85,9 @@
 }
 .chat-msg .markdown-body {
   line-height: 1.5;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .chat-msg .markdown-body p { margin: 0 0 0.5em; }
 .chat-msg .markdown-body p:last-child { margin-bottom: 0; }
@@ -98,6 +107,7 @@
   padding: 0.6em 0.8em;
   overflow-x: auto;
   margin: 0.4em 0;
+  max-width: 100%;
 }
 .chat-msg .markdown-body pre code {
   background: none;

@@ -69,16 +69,16 @@ services:
       - HF_HUB_OFFLINE=1
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       # AWS Bedrock — region defaults to eu-central-1 in code; set AWS_REGION to override.
-      # Do NOT put AWS_PROFILE in .env: the container has no ~/.aws/config, so boto3 must
-      # use the static creds below. Keep AWS_PROFILE in your host shell (e.g. .zshrc) only.
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
-      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-}
+      # ~/.aws is mounted RW below, so botocore reads AWS_PROFILE and auto-refreshes
+      # short-lived role creds from the cached SSO token (no restart needed until the
+      # SSO session itself expires). Set AWS_PROFILE in .env. No static creds injected.
+      - AWS_PROFILE=${AWS_PROFILE:-}
     env_file:
       - .env
     volumes:
       - ./config:/app/config
       - ./mcp:/app/mcp
+      - ~/.aws:/root/.aws                                 # SSO profile + token cache (RW: botocore rotates role creds)
       - ~/.jarvis/auth:/app/auth:ro
       - ~/.jarvis/data/models:/root/.cache/huggingface   # cache embedding model
       - ~/.gmail-mcp:/root/.gmail-mcp                     # Gmail MCP OAuth creds + token
