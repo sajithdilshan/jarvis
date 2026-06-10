@@ -15,7 +15,7 @@ servers:
   datetime:
     type: stdio
     command: "uv"
-    args: ["run", "python", "-m", "jarvis.mcp_servers.datetime_server"]
+    args: ["run", "--no-sync", "python", "-m", "jarvis.mcp_servers.datetime_server"]
     timeout: 30
 
   # Shared by gmail (and later calendar) agents.

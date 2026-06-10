@@ -20,7 +20,7 @@ RUN apt-get update \
 
 # Pre-install the stdio MCP servers so `npx` resolves them instantly at runtime instead
 # of downloading on first use (which blows the MCP stdio init timeout).
-RUN npm install -g @gongrzhe/server-gmail-autoauth-mcp slack-mcp-server
+RUN npm install -g @gongrzhe/server-gmail-autoauth-mcp slack-mcp-server @cocal/google-calendar-mcp
 
 # GitHub MCP Server (local binary — has proper notifications toolset)
 RUN curl -fsSL https://github.com/github/github-mcp-server/releases/download/v1.1.2/github-mcp-server_Linux_x86_64.tar.gz \
@@ -49,4 +49,4 @@ COPY --from=web /web/dist ./web/dist
 EXPOSE 4000
 
 # Runs worker + API server
-CMD ["uv", "run", "python", "-m", "jarvis.main"]
+CMD ["uv", "run", "--no-sync", "python", "-m", "jarvis.main"]
