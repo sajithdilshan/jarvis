@@ -18,6 +18,23 @@ _DEFAULT_BEDROCK_REGION = "eu-central-1"
 _DEFAULT_OLLAMA_BASE_URL = "http://host.docker.internal:11434/v1"
 
 
+@lru_cache(maxsize=1)
+def _bedrock_client():
+    """One shared bedrock-runtime client for all models.
+
+    Each BedrockProvider would otherwise build its own boto3 Session, hence its own
+    botocore SSO token provider. Under concurrent sub-agents that all refresh at once,
+    AWS SSO's rotating (single-use) refresh token means the first refresh invalidates the
+    rest -> "Invalid refresh token provided". A single shared client = one token provider,
+    whose refresh is lock-guarded, so only one refresh happens and the others reuse it.
+    """
+    import boto3
+
+    region = os.environ.get("AWS_REGION", _DEFAULT_BEDROCK_REGION)
+    logger.info("Building shared Bedrock client region=%s", region)
+    return boto3.Session().client("bedrock-runtime", region_name=region)
+
+
 @lru_cache(maxsize=None)
 def build_model(spec: str):
     """Resolve a model spec string into something ``Agent(model=...)`` accepts."""
@@ -26,9 +43,8 @@ def build_model(spec: str):
         from pydantic_ai.providers.bedrock import BedrockProvider
 
         model_id = spec.removeprefix("bedrock:")
-        region = os.environ.get("AWS_REGION", _DEFAULT_BEDROCK_REGION)
-        logger.info("Building Bedrock model model_id=%s region=%s", model_id, region)
-        provider = BedrockProvider(region_name=region)
+        logger.info("Building Bedrock model model_id=%s", model_id)
+        provider = BedrockProvider(bedrock_client=_bedrock_client())
         return BedrockConverseModel(model_id, provider=provider)
 
     if spec.startswith("ollama:"):

@@ -26,10 +26,16 @@ fi
 # it's expired/missing we kick off the browser login. Skip entirely for OpenAI/Ollama.
 if [[ "${AWS_BEDROCK_ENABLED:-0}" == "1" ]]; then
   AWS_PROFILE_NAME="${AWS_PROFILE:?Set AWS_PROFILE in .env (e.g. jarvis-bedrock)}"
-  echo "→ Ensuring a valid AWS SSO session for profile '$AWS_PROFILE_NAME'…"
-  if ! aws sts get-caller-identity --profile "$AWS_PROFILE_NAME" >/dev/null 2>&1; then
-    echo "  SSO session expired or missing — opening browser to log in…"
-    aws sso login --profile "$AWS_PROFILE_NAME"
+  echo "→ Ensuring a fresh AWS SSO session for profile '$AWS_PROFILE_NAME'…"
+  # `aws sso login` is idempotent: with a valid cached token it just confirms and exits;
+  # if the token (or its refresh token) is expired/revoked it opens the browser. Running
+  # it unconditionally renews the long-lived SSO session BEFORE the container starts, so
+  # the container's silent role-cred refresh has a full-life token to work from. (A bare
+  # `sts get-caller-identity` check would only mint momentary role creds without renewing
+  # the session token, leaving it free to expire mid-run.)
+  if ! aws sso login --profile "$AWS_PROFILE_NAME"; then
+    echo "  AWS SSO login failed — fix the login above, then re-run ./start.sh" >&2
+    exit 1
   fi
 else
   echo "→ AWS Bedrock disabled (set AWS_BEDROCK_ENABLED=1 to enable); skipping AWS auth."
