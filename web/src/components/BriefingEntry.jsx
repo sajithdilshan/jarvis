@@ -65,7 +65,10 @@ export function BriefingEntry({ narrative, tier, source, priority, context, perm
       <div class="entry-content">
         <span class={`entry-icon ${tier}`}>{icon}</span>
         <div class="entry-body">
-          <p class="entry-narrative">{narrative}</p>
+          <div
+            class="entry-narrative markdown-body"
+            dangerouslySetInnerHTML={{ __html: marked.parse(narrative || "", { breaks: true }) }}
+          />
           {timestamp && <time class="entry-timestamp" datetime={node.ts}>{timestamp}</time>}
           {tier === "did" && permission_ref && (
             <span class="entry-rule">Per your rule: "{permission_ref}"</span>

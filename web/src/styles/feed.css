@@ -94,6 +94,16 @@
 .activity-summary { flex: 1; font-weight: 500; }
 .activity-tray.has-ask .activity-summary { color: var(--rose); }
 .activity-chevron { color: var(--text-faint); font-size: 11px; }
+.activity-resolve-all {
+  color: var(--text-faint);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.activity-resolve-all:hover { color: var(--text); background: var(--surface); }
+.activity-resolve-all[aria-disabled="true"] { opacity: 0.5; pointer-events: none; }
 .activity-body {
   max-height: 240px;
   overflow-y: auto;
@@ -157,6 +167,20 @@
   line-height: 1.5;
   color: var(--text);
 }
+.entry-narrative p { margin: 0 0 0.5em; }
+.entry-narrative p:last-child { margin-bottom: 0; }
+.entry-narrative ul,
+.entry-narrative ol { margin: 0.3em 0; padding-left: 1.4em; }
+.entry-narrative li { margin: 0.15em 0; }
+.entry-narrative code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+  background: var(--surface);
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+.entry-narrative strong { font-weight: 600; }
+.entry-narrative a { color: var(--blue); text-decoration: underline; }
 
 .entry-timestamp {
   display: block;

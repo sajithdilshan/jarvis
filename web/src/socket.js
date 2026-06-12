@@ -125,3 +125,9 @@ export async function resolveItem(region, nodeId) {
     body: JSON.stringify({ region, node_id: nodeId }),
   });
 }
+
+// Dismiss every node in a list. Fires the per-item endpoint in parallel; the backend's
+// feed_refresh broadcast redraws all tabs once the writes land.
+export async function resolveAll(region, nodeIds) {
+  await Promise.all(nodeIds.map((id) => resolveItem(region, id)));
+}
