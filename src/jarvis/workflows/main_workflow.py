@@ -123,22 +123,22 @@ class MainAgentWorkflow:
             }
 
         # Phase 3: Execute standing permissions BEFORE synthesis. This acts on items
-        # autonomously (archive, mark_read, etc.) and produces "did" entries. Runs in
-        # parallel with synthesis since they operate on independent data.
-        perm_task = workflow.execute_activity(
+        # autonomously (archive, mark_read, etc.) and produces "did" entries. Runs first
+        # so synthesis knows which items were already handled and doesn't flag working
+        # permissions as broken.
+        perm_result = await workflow.execute_activity(
             EXECUTE_PERMISSIONS,
             args=[agent_results, sid],
             **agent_activity(minutes=2),
         )
 
-        # Main agent synthesizes the aggregated data; returns briefing + memory.
-        synth_task = workflow.execute_activity(
+        # Main agent synthesizes the aggregated data; returns briefing + memory. It also
+        # receives the permission execution result so it knows what was acted on.
+        response = await workflow.execute_activity(
             RUN_MAIN_AGENT_SYNTHESIZE,
-            args=[agent_results, sid],
+            args=[agent_results, perm_result, sid],
             **agent_activity(),
         )
-
-        perm_result, response = await asyncio.gather(perm_task, synth_task)
 
         # Merge "did" entries and overflow alerts into the briefing stream.
         all_briefing = (

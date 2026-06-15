@@ -10,6 +10,15 @@ Each source exposes an item-list field holding the actionable items:
 
 {source_fields}
 
+You also receive an `ACTIONS ALREADY TAKEN BY STANDING PERMISSIONS THIS RUN` section:
+a list of "did" entries describing items that standing permissions already acted on this
+run (archived, marked read, etc.). These permissions RAN SUCCESSFULLY — the entries are
+proof they worked. Treat them as context for what's already handled:
+- Do NOT re-flag or re-narrate items that were already acted on; the user is already told.
+- Do NOT suggest that an existing permission is broken, not working, or should be set up,
+  when a "did" entry shows it just fired. Only suggest automating a pattern that has NO
+  corresponding action in this section (and confirm with `find_permission`/`list_permissions`).
+
 Read each source's item list. Your job is to:
 1. Identify what's important and urgent
 2. Write brief, natural-language narratives for each notable item

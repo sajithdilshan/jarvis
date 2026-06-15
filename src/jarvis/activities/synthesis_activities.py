@@ -43,7 +43,9 @@ class SynthesisActivities:
         self._default_model = default_model
 
     @activity.defn
-    async def run_main_agent_synthesize(self, agent_results: dict, session_id: str) -> dict:
+    async def run_main_agent_synthesize(
+        self, agent_results: dict, permission_result: dict, session_id: str
+    ) -> dict:
         """Run the main agent over aggregated sub-agent data; persist raw tool data."""
         agent = self._registry.synthesize_agent()
         deps = SynthesizeAgentDeps(
@@ -52,10 +54,15 @@ class SynthesisActivities:
             session_id=session_id,
         )
         await self._progress.publish(session_id, "synthesizing")
+        did_entries = permission_result.get("did_entries", [])
         context = (
             "Synthesize the following data from sub-agents and decide what is "
             "important. Store key items to memory.\n\n"
-            f"{json.dumps(agent_results, indent=2, default=str)}"
+            f"SUB-AGENT DATA:\n{json.dumps(agent_results, indent=2, default=str)}\n\n"
+            "ACTIONS ALREADY TAKEN BY STANDING PERMISSIONS THIS RUN (do NOT re-flag "
+            "these items, and do NOT claim the related permissions are broken — they "
+            "ran successfully and produced these results):\n"
+            f"{json.dumps(did_entries, indent=2, default=str)}"
         )
         result = await agent.run(context, deps=deps)
         response: SynthesizeResponse = result.output
