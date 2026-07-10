@@ -110,6 +110,7 @@ async def run() -> None:
         static_dir=settings.ui.static_dir,
         ui_service=await container.ui_service(),
         permission_service=await container.permission_service(),
+        todo_service=await container.todo_service(),
         conversation_service=await container.conversation_service(),
         briefing_service=await container.briefing_service(),
     )

@@ -9,11 +9,13 @@ from temporalio.client import Client
 from jarvis.api.permission_routes import register_permission_routes
 from jarvis.api.session_routes import register_session_routes
 from jarvis.api.static_routes import register_static_routes
+from jarvis.api.todo_routes import register_todo_routes
 from jarvis.api.view_routes import register_view_routes
 from jarvis.api.websocket_routes import register_websocket_routes
 from jarvis.services.briefing_service import BriefingService
 from jarvis.services.conversation_service import ConversationService
 from jarvis.services.permission_service import PermissionService
+from jarvis.services.todo_service import TodoService
 from jarvis.services.ui_service import UIService
 
 
@@ -26,6 +28,7 @@ def create_app(
     conversation_service: ConversationService,
     briefing_service: BriefingService,
     permission_service: PermissionService | None = None,
+    todo_service: TodoService | None = None,
 ) -> FastAPI:
     app = FastAPI(title="Jarvis")
     register_session_routes(
@@ -35,6 +38,7 @@ def create_app(
         conversation_service=conversation_service,
     )
     register_permission_routes(app, permission_service=permission_service)
+    register_todo_routes(app, todo_service=todo_service)
     register_view_routes(
         app,
         ui_service=ui_service,

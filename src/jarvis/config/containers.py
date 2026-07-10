@@ -23,6 +23,7 @@ from jarvis.db.repositories.permission_repo import PermissionRepo
 from jarvis.db.repositories.poll_watermark_repo import PollWatermarkRepo
 from jarvis.db.repositories.progress_repo import ProgressRepo
 from jarvis.db.repositories.raw_data_repo import RawDataRepo
+from jarvis.db.repositories.todo_repo import TodoRepo
 from jarvis.db.repositories.token_usage_repo import TokenUsageRepo
 from jarvis.db.repositories.ui_repo import UIRepo
 from jarvis.services.briefing_service import BriefingService
@@ -35,6 +36,7 @@ from jarvis.services.permission_execution_service import PermissionExecutionServ
 from jarvis.services.poll_watermark_service import PollWatermarkService
 from jarvis.services.progress_service import ProgressService
 from jarvis.services.telemetry_service import TelemetryService
+from jarvis.services.todo_service import TodoService
 from jarvis.services.ui_service import UIService
 
 
@@ -75,6 +77,7 @@ class Container(containers.DeclarativeContainer):
         BriefingFeedbackRepo, sessionmaker=db_sessionmaker
     )
     permission_repo = providers.Singleton(PermissionRepo, sessionmaker=db_sessionmaker)
+    todo_repo = providers.Singleton(TodoRepo, sessionmaker=db_sessionmaker)
     progress_repo = providers.Singleton(ProgressRepo, sessionmaker=db_sessionmaker)
     ui_repo = providers.Singleton(UIRepo, sessionmaker=db_sessionmaker)
 
@@ -127,6 +130,11 @@ class Container(containers.DeclarativeContainer):
     permission_service = providers.Singleton(
         PermissionService,
         repo=permission_repo,
+    )
+
+    todo_service = providers.Singleton(
+        TodoService,
+        repo=todo_repo,
     )
 
     # --- Agent registry (auto-discovers sources/, resolves MCP servers by name) ---

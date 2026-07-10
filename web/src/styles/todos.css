@@ -1,0 +1,334 @@
+/* ============================================================================
+   Todo pane — fills the right pane when chat is minimized
+   ============================================================================ */
+
+/* A normal flex child that fills the pane BELOW the 44px header (not inset:0, which
+   would overlay the "Jarvis online" status row). position:relative anchors confetti. */
+.todo-pane {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 18px 20px;
+  overflow: hidden;
+}
+
+.todo-pane-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 2px 14px;
+}
+.todo-pane-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.todo-add-btn {
+  background: var(--bg-0);
+  border: 1px solid var(--matrix-green);
+  color: var(--matrix-green);
+  border-radius: var(--r-sm);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+.todo-add-btn:hover {
+  background: rgba(var(--matrix-rgb), 0.12);
+  box-shadow: 0 0 14px rgba(var(--matrix-rgb), 0.3);
+}
+
+.todo-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 2px;
+  /* Clear the floating "Jarvis" pill (bottom:20px, ~40px tall) so the last card
+     never slides underneath it. */
+  padding-bottom: 72px;
+}
+.todo-empty {
+  color: var(--text-faint);
+  text-align: center;
+  padding: 40px 16px;
+  font-size: 13px;
+}
+
+/* --- Todo card --- flat surface (no glass blur / gradient highlight), matching the
+   briefing feed's calmer look rather than the frosted .card default. */
+.todo-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--bg-1);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  animation: rise var(--dur-slow) var(--ease-out) both;
+  transition: transform var(--dur) var(--ease-spring),
+              opacity var(--dur) var(--ease-out),
+              border-color var(--dur) var(--ease-out),
+              background var(--dur) var(--ease-out);
+}
+/* Kill the Apple-style top gradient highlight inherited from .card::before. */
+.todo-card::before { display: none; }
+.todo-card:hover {
+  transform: none;
+  background: var(--surface);
+  border-color: var(--hairline-hi);
+  box-shadow: none;
+}
+.todo-card.leaving {
+  opacity: 0;
+  transform: translateX(28px) scale(0.96);
+}
+
+.todo-card-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.todo-check {
+  flex: none;
+  margin-top: 1px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--hairline-hi);
+  background: var(--bg-0);
+  color: transparent;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-out);
+}
+.todo-check:hover {
+  border-color: var(--matrix-green);
+  color: var(--matrix-green);
+  box-shadow: 0 0 10px rgba(var(--matrix-rgb), 0.35);
+}
+.todo-check:active { transform: scale(0.9); }
+
+.todo-body { min-width: 0; flex: 1; }
+.todo-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  justify-content: space-between;
+}
+.todo-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.todo-due {
+  flex: none;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  background: var(--accent-glow);
+  color: var(--accent);
+}
+
+/* --- Markdown body (unscoped copy of .entry-context-md so it renders outside .chat-msg) --- */
+.todo-md {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-dim);
+}
+.todo-md p { margin: 0 0 0.5em; }
+.todo-md p:last-child { margin-bottom: 0; }
+.todo-md ul, .todo-md ol { margin: 0.3em 0; padding-left: 1.3em; }
+.todo-md code {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+.todo-md pre {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.6em 0.8em;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 0.4em 0;
+}
+.todo-md a { color: var(--matrix-green); }
+
+/* --- Per-card actions (reveal on hover, like .resolve-btn) --- */
+.todo-actions {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  opacity: 0;
+  transform: translateX(4px);
+  transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+.todo-card:hover .todo-actions { opacity: 1; transform: none; }
+.todo-action {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 3px 5px;
+  font-size: 13px;
+  line-height: 1;
+  border-radius: var(--r-sm);
+  color: var(--text-dim);
+  opacity: 0.7;
+  transition: opacity var(--dur-fast), background var(--dur-fast), color var(--dur-fast);
+}
+.todo-action:hover { opacity: 1; background: var(--surface-hi); color: var(--text); }
+
+/* ============================================================================
+   Todo modal form fields (shares .popup-* shell with PermissionsPopup)
+   ============================================================================ */
+
+.todo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.todo-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.todo-field-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
+}
+.todo-input {
+  background: var(--bg-0);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+.todo-input::placeholder { color: var(--text-faint); }
+.todo-input:focus {
+  border-color: var(--matrix-green);
+  box-shadow: 0 0 0 1px rgba(var(--matrix-rgb), 0.3), 0 0 16px rgba(var(--matrix-rgb), 0.12);
+}
+.todo-textarea {
+  resize: none;
+  overflow-y: auto;
+  max-height: 240px;
+  line-height: 1.5;
+}
+/* Nudge the native date picker toward the theme. */
+.todo-input[type="date"] { color-scheme: dark; }
+
+.todo-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: none;
+  padding: 4px 0 0;
+}
+.todo-btn {
+  border-radius: var(--r-sm);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), opacity var(--dur-fast);
+}
+.todo-btn--ghost {
+  background: none;
+  border: 1px solid var(--hairline-hi);
+  color: var(--text-dim);
+}
+.todo-btn--ghost:hover { background: var(--surface-hi); color: var(--text); }
+.todo-btn--primary {
+  background: var(--bg-0);
+  border: 1px solid var(--matrix-green);
+  color: var(--matrix-green);
+}
+.todo-btn--primary:hover:not(:disabled) {
+  background: rgba(var(--matrix-rgb), 0.12);
+  box-shadow: 0 0 14px rgba(var(--matrix-rgb), 0.3);
+}
+.todo-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ============================================================================
+   Matrix rain — full-screen celebration on todo completion
+   ============================================================================ */
+
+/* Fixed overlay covering the whole viewport, above everything. The envelope keyframe
+   fades the whole thing in then out; JS unmounts it when DURATION_MS elapses. */
+.matrix-rain {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+  background: radial-gradient(circle at center, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.72));
+  animation: matrix-envelope 2.6s var(--ease-out) forwards;
+}
+.matrix-rain-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+@keyframes matrix-envelope {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Center "COMPLETE" badge — pops in, holds, then eases away with the overlay. */
+.matrix-rain-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--matrix-green);
+  font-family: var(--font-mono);
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-indent: 0.22em; /* balance the trailing letter-spacing so text stays centered */
+  text-shadow: 0 0 16px rgba(var(--matrix-rgb), 0.9), 0 0 40px rgba(var(--matrix-rgb), 0.5);
+  filter: drop-shadow(0 0 12px rgba(var(--matrix-rgb), 0.7));
+  animation: matrix-badge-pop 2.6s var(--ease-spring) forwards;
+}
+@keyframes matrix-badge-pop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+  14% { opacity: 1; transform: translate(-50%, -50%) scale(1.12); }
+  24% { transform: translate(-50%, -50%) scale(1); }
+  78% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.15); }
+}

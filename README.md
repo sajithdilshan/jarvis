@@ -129,6 +129,22 @@ The interactive agent can call any connected MCP tool, search vector memory, and
 **grant / revoke / refine standing permissions** — which is how the scheduled loop learns
 what it's allowed to do autonomously.
 
+## Todo list
+
+Alongside the briefing, the dashboard has a lightweight personal **todo list**. Minimize
+the chat pane (the ⁃ button) and the right side becomes a todo board:
+
+- **Add** opens a modal to create a todo with a title, a **markdown** description, and an
+  optional due date.
+- Todos render as cards ordered by **due date ascending** (undated last), each with an
+  inline edit and delete.
+- Completing a todo (the checkbox) **soft-deletes** it — it sets a `completed` flag and
+  drops off the board, but the row is kept — and fires a full-screen **Matrix "digital
+  rain" celebration**. Only incomplete todos are ever fetched.
+
+It's a self-contained vertical slice (`todos` table → `TodoRepo` → `TodoService` →
+`/todos` REST routes → Preact `TodoPane`), independent of the agent loop.
+
 ## Self-improving synthesizer (feedback loop)
 
 Beyond permissions, Jarvis can improve **how it briefs you** over time. Each briefing entry
@@ -511,6 +527,7 @@ All tables live in one Postgres database (shared with Temporal's own backend). T
 | `interactions` | Chat **conversation history** — one row per turn (`role` = user/assistant, `content`), used to give the interactive agent continuity. |
 | `token_usage` | **Telemetry.** One row per LLM-running activity: resolved `model`, `agent`, `trigger`, and input/output/cache token counts + tool calls. Dollar cost is computed at query time. |
 | `progress` | Transient per-session **progress events** (e.g. `gmail_checking` → `gmail_complete`) streamed to the UI during a run. |
+| `todos` | Personal **todo list** shown in the dashboard's right pane. `title`, markdown `description`, optional `due_date`, and a `completed` flag. Completing a todo is a soft delete (`completed=true`); only incomplete rows are fetched, ordered by due date ascending. |
 
 The reference DDL with full column definitions and indexes is in
 `src/jarvis/db/schema.sql`; the authoritative, versioned schema is the Alembic migration

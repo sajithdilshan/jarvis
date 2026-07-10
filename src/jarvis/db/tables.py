@@ -185,6 +185,22 @@ class ExecutedPermissionAudit(Base):
     ts: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=text("now()"))
 
 
+class Todo(Base):
+    __tablename__ = "todos"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(Text)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    due_date: Mapped[datetime | None] = mapped_column(TIMESTAMP(timezone=True), nullable=True)
+    completed: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), server_default=text("now()")
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), server_default=text("now()")
+    )
+
+
 class Progress(Base):
     __tablename__ = "progress"
 

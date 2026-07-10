@@ -1,5 +1,5 @@
 // One socket per session carries three message kinds; clicks/chat POST intents back.
-import { appendToken, progress, connected, setViewModel, loadChatHistory } from "./store.js";
+import { appendToken, progress, connected, setViewModel, loadChatHistory, loadTodos } from "./store.js";
 import { isBusy } from "./status.js";
 
 let SESSION_ID = null;
@@ -15,6 +15,7 @@ export async function initSession() {
   const { session_id } = await res.json();
   SESSION_ID = session_id;
   loadChatHistory();
+  loadTodos();
   return session_id;
 }
 

@@ -3,6 +3,7 @@ import { useState } from "preact/hooks";
 import { viewModel, progress, connected, chatMinimized, setChatMinimized } from "./store.js";
 import { Region } from "./Renderer.jsx";
 import { ChatDock } from "./ChatDock.jsx";
+import { TodoPane } from "./components/TodoPane.jsx";
 import { PermissionsPopup } from "./components/PermissionsPopup.jsx";
 import { ActivityTray } from "./components/ActivityTray.jsx";
 import { DailySummary } from "./components/DailySummary.jsx";
@@ -110,6 +111,7 @@ export function Shell() {
             </button>
           </div>
           <ChatDock />
+          {chatMinimized.value && <TodoPane />}
           {chatMinimized.value && (
             <button class="chat-pill" onClick={() => setChatMinimized(false)} aria-label="Open chat">
               <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
