@@ -15,6 +15,7 @@ from jarvis.activities.source_activities import SourceActivities
 from jarvis.activities.synthesis_activities import SynthesisActivities
 from jarvis.agents.registry import AgentRegistry
 from jarvis.db.engine import engine_resource, notify_pool_resource
+from jarvis.db.repositories.briefing_feedback_repo import BriefingFeedbackRepo
 from jarvis.db.repositories.briefing_log_repo import BriefingLogRepo
 from jarvis.db.repositories.interaction_repo import InteractionRepo
 from jarvis.db.repositories.memory_chunk_repo import MemoryChunkRepo
@@ -70,6 +71,9 @@ class Container(containers.DeclarativeContainer):
     interaction_repo = providers.Singleton(InteractionRepo, sessionmaker=db_sessionmaker)
     poll_watermark_repo = providers.Singleton(PollWatermarkRepo, sessionmaker=db_sessionmaker)
     briefing_log_repo = providers.Singleton(BriefingLogRepo, sessionmaker=db_sessionmaker)
+    briefing_feedback_repo = providers.Singleton(
+        BriefingFeedbackRepo, sessionmaker=db_sessionmaker
+    )
     permission_repo = providers.Singleton(PermissionRepo, sessionmaker=db_sessionmaker)
     progress_repo = providers.Singleton(ProgressRepo, sessionmaker=db_sessionmaker)
     ui_repo = providers.Singleton(UIRepo, sessionmaker=db_sessionmaker)
@@ -101,6 +105,7 @@ class Container(containers.DeclarativeContainer):
     briefing_service = providers.Singleton(
         BriefingService,
         repo=briefing_log_repo,
+        feedback_repo=briefing_feedback_repo,
     )
 
     mcp_service = providers.Singleton(

@@ -315,6 +315,104 @@
 .stale-group[open] .stale-toggle::before { transform: rotate(90deg); }
 .stale-toggle:hover { color: var(--text-dim); }
 
+/* --- Lower-priority (normal + low) collapsible box: anti-suppression band --- */
+.lowprio-group {
+  margin-top: 16px;
+  border-top: 1px solid var(--hairline);
+  padding-top: 8px;
+}
+.lowprio-toggle {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-faint);
+  cursor: pointer;
+  list-style: none;
+  padding: 8px 4px;
+  transition: color var(--dur-fast);
+}
+.lowprio-toggle::-webkit-details-marker { display: none; }
+.lowprio-toggle::before {
+  content: "›";
+  display: inline-block;
+  margin-right: 6px;
+  transition: transform var(--dur) var(--ease-spring);
+}
+.lowprio-group[open] .lowprio-toggle::before { transform: rotate(90deg); }
+.lowprio-toggle:hover { color: var(--text-dim); }
+
+/* --- Priority rating control (verifier signal) --- */
+.entry-rating {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.briefing-entry:hover .entry-rating,
+.entry-rating:focus-within { opacity: 1; }
+.entry-rating-label {
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+.entry-rating-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.entry-rating-dot {
+  background: none;
+  border: none;
+  padding: 0 1px;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--text-faint);
+  opacity: 0.45;
+  cursor: pointer;
+  transition: color var(--dur-fast), opacity var(--dur-fast), transform var(--dur-fast) var(--ease-spring);
+}
+.entry-rating-dot:hover { transform: scale(1.15); }
+.entry-rating-dot.filled { color: var(--accent); opacity: 1; }
+.entry-rating-note {
+  background: none;
+  border: none;
+  padding: 0 4px;
+  font-size: 12px;
+  color: var(--text-faint);
+  cursor: pointer;
+  opacity: 0.6;
+}
+.entry-rating-note:hover { opacity: 1; }
+.entry-rating-comment {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+}
+.entry-rating-comment input {
+  flex: 1;
+  min-width: 0;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm);
+  padding: 5px 9px;
+  font-size: 12.5px;
+  font-family: inherit;
+  color: var(--text);
+}
+.entry-rating-comment input:focus { outline: none; border-color: var(--accent); }
+.entry-rating-comment button {
+  background: var(--surface-solid);
+  border: 1px solid var(--hairline-hi);
+  border-radius: var(--r-sm);
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.entry-rating-comment button:hover { color: var(--text); border-color: var(--accent); }
+
 /* --- Calm empty state with daily summary --- */
 .empty-state.calm {
   display: flex;

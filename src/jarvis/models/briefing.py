@@ -43,3 +43,24 @@ class BriefingAlertSummary(BaseModel):
     source: str
     permission_ref: str | None = None
     ts: datetime
+
+
+class BriefingFeedbackWrite(BaseModel):
+    """Inbound rating of whether an entry's priority call was correct (1=worst..5=best)."""
+
+    briefing_id: str
+    score: int = Field(ge=1, le=5)
+    comment: str | None = None
+
+
+class BriefingFeedbackRecord(BaseModel):
+    """A stored rating with the snapshots frozen at rating time (for the miner)."""
+
+    briefing_id: str
+    score: int
+    comment: str | None = None
+    rated_priority: Literal["low", "normal", "high"]
+    source: str
+    category: Literal["did", "ask", "noticed"]
+    narrative_snapshot: str
+    created_at: datetime

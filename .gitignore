@@ -19,6 +19,11 @@ web/dist/
 data/
 *.dump
 
+# Personalized synthesizer overrides learned by the improve-synthesizer skill. These may
+# contain sensitive/personal content and must NEVER be committed — they are composed into
+# the runtime prompt locally at build time.
+*.local.md
+
 # Platform MCP binary fetched locally (lives in the Docker image otherwise)
 scripts/github-mcp-server
 
@@ -27,4 +32,4 @@ scripts/github-mcp-server
 
 tmp/
 .idea/
-.claude/
+*.local.json

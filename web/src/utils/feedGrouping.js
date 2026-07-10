@@ -29,6 +29,13 @@ export function isActivityNode(node) {
   return node.props?.category === "did" || node.props?.category === "ask";
 }
 
+// Anti-suppression split: high-priority entries are always shown; normal + low go in a
+// collapsible box. Nothing is ever dropped — the worst the synthesizer can do is mis-sort
+// (high<->low), which stays visible and correctable via the rating control.
+export function isHighPriority(node) {
+  return node.props?.priority === "high";
+}
+
 export function groupVisibleFeed(nodes) {
   const groups = { now: [], earlier: [], yesterday: [] };
   for (const node of nodes) {

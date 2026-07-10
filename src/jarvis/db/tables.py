@@ -110,6 +110,33 @@ class BriefingLog(Base):
     )
 
 
+class BriefingLogFeedback(Base):
+    """User rating of whether the synthesizer's priority call on an entry was right.
+
+    Snapshots (rated_priority/source/category/narrative_snapshot) are frozen at
+    rating time — briefing_log rows are upserted across polls and can drift from
+    what the user actually saw. The improvement harness trains on these snapshots.
+    """
+
+    __tablename__ = "briefing_log_feedback"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    briefing_id: Mapped[str] = mapped_column(Text)
+    score: Mapped[int] = mapped_column(Integer)
+    comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    rated_priority: Mapped[str] = mapped_column(Text)
+    source: Mapped[str] = mapped_column(Text)
+    category: Mapped[str] = mapped_column(Text)
+    narrative_snapshot: Mapped[str] = mapped_column(Text)
+    session_id: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), server_default=text("now()")
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), server_default=text("now()")
+    )
+
+
 class PollWatermark(Base):
     """Single row tracking the last *successful* scheduled poll's start time.
 

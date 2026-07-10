@@ -129,6 +129,46 @@ The interactive agent can call any connected MCP tool, search vector memory, and
 **grant / revoke / refine standing permissions** — which is how the scheduled loop learns
 what it's allowed to do autonomously.
 
+## Self-improving synthesizer (feedback loop)
+
+Beyond permissions, Jarvis can improve **how it briefs you** over time. Each briefing entry
+carries a priority (`high` / `normal` / `low`) that the synthesize agent decides; you rate
+whether that call was right, and a separate offline step mines those ratings to refine the
+synthesizer — a manual, human-gated take on the "self-improving harness" idea (the model
+stays fixed; only the prompt surface it runs under changes).
+
+**Anti-suppression by design.** Nothing the synthesizer produces is ever hidden or dropped.
+The dashboard always shows every entry: `high` entries expanded at the top, `normal` + `low`
+in a collapsible box you still review. So the worst a bad priority call can do is *mis-sort* an
+item — which stays visible and correctable — instead of silently burying it. This is the key
+safety property: it removes any incentive for the loop to "improve its score" by suppressing
+borderline items (classic reward-hacking), because suppression isn't possible.
+
+**1 — Capture (live).** A one-tap rating control on each `noticed` entry lets you score
+priority-correctness 1–5 with an optional comment. Ratings are stored in
+`briefing_log_feedback`, snapshotting the priority/source/narrative *as shown* (briefing rows
+are re-upserted across polls, so the live row can drift from what you actually rated).
+
+**2 — Improve (manual, offline).** The synthesizer's editable surfaces are split out so they
+can be refined in isolation:
+- `agents/core/synthesize/priority_policy.md` — the high/normal/low decision (backed by the
+  1–5 verifier signal).
+- `agents/core/synthesize/prompt.md` — narrative wording, batching, framing (mined from your
+  free-text comments; weaker, judgment-based evidence).
+
+You run the improvement as a **Claude Code session** via the `improve-synthesizer` skill
+(`.claude/skills/`): it queries feedback accumulated since the last run, clusters recurring
+mis-prioritization / wording patterns, and proposes a **minimal** edit — with you as the
+acceptance gate.
+
+**Privacy: learned edits never touch version control.** Personalizations can contain
+sensitive context, so the skill never edits the committed base files. Instead it writes
+gitignored `*.local.md` overrides (`priority_policy.local.md`, `prompt.local.md`) that the
+runtime composes onto the base at prompt-build time — so a refinement takes effect on the next
+poll with no commit. A `last_optimized:` stamp inside each override marks the feedback window
+for the next run; deleting a dated section is the rollback. The anti-suppression rule binds
+both surfaces: an edit may re-rank or re-word, never cause an item to go un-emitted.
+
 ## Architecture
 
 Jarvis runs as a **single Python process** that hosts both a Temporal worker and a
@@ -191,6 +231,9 @@ src/jarvis/
 │   ├── model_factory.py     # spec string → model (bedrock/openai/ollama)
 │   ├── core/                # bespoke agents (not SPEC-discovered)
 │   │   ├── synthesize/      # reasons over aggregated data
+│   │   │                    #   prompt.md + priority_policy.md are editable surfaces;
+│   │   │                    #   the improve-synthesizer skill refines them via gitignored
+│   │   │                    #   *.local.md overrides (see "Self-improving synthesizer")
 │   │   ├── interactive/     # chat agent (lazy MCP tool loading)
 │   │   └── permission_execution/
 │   └── sources/             # plugin agents (gmail, slack, github, atlassian)
@@ -461,7 +504,8 @@ All tables live in one Postgres database (shared with Temporal's own backend). T
 |-------|---------|
 | `raw_data` | **Source of truth.** Full raw payloads from MCP tools, keyed `"{source}:{source_id}"`. Everything else can be rebuilt from here. |
 | `memory_chunks` | Rebuildable **vector index** over `raw_data`. Stores the embedded `content` (so it can be re-embedded if the model changes), a `VECTOR(768)` embedding, plus `category` (communication/task/decision/preference), `entities`, `importance`, and `confidence` (for learned preferences). HNSW cosine index. |
-| `briefing_log` | The **primary UI content.** One row per briefing entry — `tier` (`noticed`/`did`), `category` (`did`/`ask`/`noticed`), `narrative`, `source`, `refs`, expandable `context`, `priority`, and `permission_ref`. Entries are never deleted, only **resolved** (`resolved_at` set); the active feed is `WHERE resolved_at IS NULL`. |
+| `briefing_log` | The **primary UI content.** One row per briefing entry — `tier` (`noticed`/`did`), `category` (`did`/`ask`/`noticed`), `narrative`, `source`, `refs`, expandable `context`, `priority`, and `permission_ref`. Entries are never deleted, only **resolved** (`resolved_at` set); the active feed is `WHERE resolved_at IS NULL`. The UI always shows every unresolved entry — `high` at the top, `normal`/`low` in a collapsible box (anti-suppression). |
+| `briefing_log_feedback` | **Priority-correctness ratings** — the verifier signal for the self-improving synthesizer. One row per rated entry (upsert on `briefing_id`): `score` (1–5), optional `comment`, and a snapshot of `rated_priority`/`source`/`category`/`narrative_snapshot` frozen *at rating time* (briefing rows drift across polls). Mined offline by the `improve-synthesizer` skill. |
 | `permissions` | **Standing rules** the scheduled loop may execute autonomously. Natural-language `description`, a `source`, structured `constraints` (the match DSL), `allowed_actions`, and `active`. Managed via chat (grant/revoke/refine). |
 | `poll_watermark` | Single row. Start time of the last scheduled poll that finished with **no source failures** — read as the next run's "since", advanced only on a clean run. |
 | `interactions` | Chat **conversation history** — one row per turn (`role` = user/assistant, `content`), used to give the interactive agent continuity. |

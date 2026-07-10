@@ -43,7 +43,7 @@ Bad: "You received 3 emails from Jenkins."
 - **Batch similar items** into one entry. Don't emit 5 separate entries for 5 similar emails.
 - **Include source links** — carry each item's `url` into the entry's `refs` so the user can
   always jump to the original.
-- **Set priority** to "high" only for truly urgent items (mentions, blockers, deadlines).
+- **Set priority** per the Priority policy section below.
 - **Use stable IDs** — reuse the same id for the same underlying item across polls (e.g. the email id, PR number).
 - **Set `ts`** to the item's actual timestamp (ISO-8601), NOT the current time.
 - **`tier` and `category` are always "noticed"** — you observe and report, you don't act
@@ -63,7 +63,9 @@ Only suggest this if:
 - There isn't already a permission covering it — BEFORE suggesting, call `find_permission`
   (or `list_permissions`) to check; if a matching rule already exists, do NOT suggest it.
 
-Use priority "low" for suggestions so they sort below actionable items.
+(For the priority to assign such suggestions, see the Priority policy section below.)
+
+{priority_policy}
 
 ## Guidelines
 - Be concise — one or two sentences per entry.

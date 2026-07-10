@@ -9,31 +9,26 @@ import { DailySummary } from "./components/DailySummary.jsx";
 import { TimeGroupSection } from "./components/TimeGroupSection.jsx";
 import { useSplitter } from "./hooks/useSplitter.js";
 import { humanizeStatus, isBusy } from "./status.js";
-import { groupVisibleFeed, isActivityNode, isStale } from "./utils/feedGrouping.js";
-
-const MAX_VISIBLE = 15;
+import { groupVisibleFeed, isActivityNode, isHighPriority, sortByPriority } from "./utils/feedGrouping.js";
 
 export function Shell() {
   const [showPerms, setShowPerms] = useState(false);
-  const [showAll, setShowAll] = useState(false);
   const regions = viewModel.value.regions || {};
   const status = progress.value["_"];
   const allFeed = regions["feed"] || [];
 
   // Activity (did/ask) is pulled out of the main feed into a compact tray; the rest
-  // ("noticed") flows into the time-grouped briefing below.
+  // ("noticed") flows into the briefing below.
   const activity = allFeed.filter(isActivityNode);
   const feed = allFeed.filter((n) => !isActivityNode(n));
 
-  // Split into visible and collapsed (stale 24h+ entries)
-  const fresh = feed.filter((n) => !isStale(n.ts));
-  const stale = feed.filter((n) => isStale(n.ts));
-
-  // Apply max visible limit to fresh entries
-  const visibleFresh = showAll ? fresh : fresh.slice(0, MAX_VISIBLE);
-  const hiddenCount = showAll ? 0 : Math.max(0, fresh.length - MAX_VISIBLE);
-
-  const groups = groupVisibleFeed(visibleFresh);
+  // Anti-suppression split: high-priority entries are ALWAYS shown (time-grouped, at
+  // top); normal + low go in a collapsible box below. Nothing is hidden or dropped — the
+  // synthesizer can at worst mis-sort, which stays visible and correctable (see the
+  // rating control on each entry). The user clears both bands by EOD.
+  const high = feed.filter(isHighPriority);
+  const rest = feed.filter((n) => !isHighPriority(n));
+  const groups = groupVisibleFeed(high);
 
   const leftW = useSplitter();
   const unread = allFeed.length;
@@ -78,18 +73,12 @@ export function Shell() {
                 <TimeGroupSection label="Earlier today" nodes={groups.earlier} />
                 <TimeGroupSection label="Yesterday" nodes={groups.yesterday} />
 
-                {hiddenCount > 0 && (
-                  <button class="show-more" onClick={() => setShowAll(true)}>
-                    Show {hiddenCount} more
-                  </button>
-                )}
-
-                {stale.length > 0 && (
-                  <details class="stale-group">
-                    <summary class="stale-toggle">
-                      {stale.length} older item{stale.length > 1 ? "s" : ""}
+                {rest.length > 0 && (
+                  <details class="lowprio-group">
+                    <summary class="lowprio-toggle">
+                      {rest.length} lower-priority update{rest.length > 1 ? "s" : ""}
                     </summary>
-                    <Region region="feed" nodes={stale} />
+                    <Region region="feed" nodes={sortByPriority(rest)} />
                   </details>
                 )}
               </>

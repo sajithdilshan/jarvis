@@ -4,14 +4,19 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from jarvis.db.repositories.briefing_feedback_repo import BriefingFeedbackRepo
 from jarvis.db.repositories.briefing_log_repo import BriefingLogRepo
 from jarvis.models.agent_io import BriefingEntry
-from jarvis.models.briefing import BriefingLogWrite
+from jarvis.models.briefing import BriefingFeedbackWrite, BriefingLogWrite
+
+# The dashboard is a single local user; feedback provenance is tagged with this session.
+_FEEDBACK_SESSION_ID = "dashboard"
 
 
 class BriefingService:
-    def __init__(self, repo: BriefingLogRepo):
+    def __init__(self, repo: BriefingLogRepo, feedback_repo: BriefingFeedbackRepo):
         self._repo = repo
+        self._feedback_repo = feedback_repo
 
     async def store_briefing_entries(self, entries: list[BriefingEntry], session_id: str) -> None:
         """Upsert briefing entries (write-once: narrative doesn't change on re-insert)."""
@@ -52,3 +57,10 @@ class BriefingService:
 
     async def count_resolved_today(self) -> int:
         return await self._repo.count_resolved_today()
+
+    async def record_feedback(self, feedback: BriefingFeedbackWrite) -> None:
+        """Record the user's priority-correctness rating for a briefing entry.
+
+        Snapshots the live briefing_log row at rating time (see BriefingFeedbackRepo).
+        """
+        await self._feedback_repo.upsert_feedback(feedback, session_id=_FEEDBACK_SESSION_ID)

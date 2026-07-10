@@ -131,3 +131,14 @@ export async function resolveItem(region, nodeId) {
 export async function resolveAll(region, nodeIds) {
   await Promise.all(nodeIds.map((id) => resolveItem(region, id)));
 }
+
+// Rate whether an entry's priority (high/normal/low) was correct — the verifier signal
+// for the self-improving priority harness. score 1..5; comment optional. Fire-and-forget:
+// no feed_refresh, the rating doesn't change what's shown, only what the miner learns.
+export async function sendFeedback(briefingId, score, comment = null) {
+  await fetch("/feedback", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ briefing_id: briefingId, score, comment }),
+  });
+}
