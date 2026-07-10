@@ -1,6 +1,6 @@
 // Briefing stream layout: single column feed + persistent chat dock.
 import { useState } from "preact/hooks";
-import { viewModel, progress, connected } from "./store.js";
+import { viewModel, progress, connected, chatMinimized, setChatMinimized } from "./store.js";
 import { Region } from "./Renderer.jsx";
 import { ChatDock } from "./ChatDock.jsx";
 import { PermissionsPopup } from "./components/PermissionsPopup.jsx";
@@ -88,7 +88,7 @@ export function Shell() {
 
         <div class="splitter" id="splitter" role="separator" aria-label="Resize panes" />
 
-        <section class="pane pane--chat">
+        <section class={`pane pane--chat ${chatMinimized.value ? "chat-min" : ""}`}>
           <div class="pane__header">
             <span class="pane__status">
               <span class={`pane__status-dot ${
@@ -98,8 +98,30 @@ export function Shell() {
                 ? "Jarvis offline"
                 : status ? humanizeStatus(status) : "Jarvis online"}
             </span>
+            <button
+              class="chat-min-btn"
+              onClick={() => setChatMinimized(true)}
+              title="Minimize chat"
+              aria-label="Minimize chat"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
           </div>
           <ChatDock />
+          {chatMinimized.value && (
+            <button class="chat-pill" onClick={() => setChatMinimized(false)} aria-label="Open chat">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <rect x="5" y="6" width="14" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.6" />
+                <line x1="12" y1="2" x2="12" y2="6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                <circle cx="12" cy="2" r="1.4" fill="currentColor" />
+                <circle cx="9.5" cy="12" r="1.5" fill="currentColor" />
+                <circle cx="14.5" cy="12" r="1.5" fill="currentColor" />
+              </svg>
+              Jarvis
+            </button>
+          )}
         </section>
       </div>
       <PermissionsPopup open={showPerms} onClose={() => setShowPerms(false)} />

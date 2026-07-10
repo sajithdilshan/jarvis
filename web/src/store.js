@@ -9,6 +9,12 @@ export const progress = signal({}); // region_id -> status string
 export const thinking = signal(false); // true between send and first reply token
 export const connected = signal(false); // WebSocket live? drives the offline indicator
 export const loadingOlder = signal(false); // fetching an older page (drives the spinner)
+export const chatMinimized = signal(localStorage.getItem("chatMinimized") === "1"); // chat collapsed to a floating pill
+
+export function setChatMinimized(v) {
+  chatMinimized.value = v;
+  localStorage.setItem("chatMinimized", v ? "1" : "0");
+}
 
 let oldestId = null; // cursor: id of the oldest message currently in the thread
 
