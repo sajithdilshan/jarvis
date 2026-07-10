@@ -302,6 +302,7 @@
         <a href="#how">how it works</a>
         <a href="#workflows">workflows</a>
         <a href="#improve">self-improving</a>
+        <a href="#todos">todos</a>
         <a href="#arch">architecture</a>
         <a href="#extend">extend</a>
         <a href="#setup">setup</a>
@@ -464,6 +465,26 @@
           </div>
         </div>
         <p class="wf-note reveal" style="max-width:680px">Two editable surfaces: <code>priority_policy.md</code> (the ranking, backed by your 1–5 ratings) and <code>prompt.md</code> (narrative, batching, framing — mined from your comments). The anti-suppression rule binds both: an edit may re-rank or re-word, never un-emit.</p>
+      </div>
+    </section>
+
+    <section id="todos">
+      <div class="wrap">
+        <div class="reveal">
+          <p class="eyebrow">STAY ON TOP OF IT</p>
+          <h2>A todo list, built in</h2>
+          <p class="lead">
+            The briefing tells you what changed; the todo list is where you park what
+            <i>you</i> need to do about it. Minimize the chat pane and the right side turns
+            into a personal todo board — no source, no agent, just you.
+          </p>
+        </div>
+        <div class="grid cols-3 reveal">
+          <div class="card"><span class="ic">＋</span><h3>Add in a tap</h3><p>A quick modal captures a <b>title</b>, a <b>markdown</b> description, and an optional <b>due date</b>. Rendered markdown means checklists, links and code fit right in.</p><span class="tag">CREATE</span></div>
+          <div class="card"><span class="ic">☰</span><h3>Sorted by due date</h3><p>Cards order by <b>due date ascending</b> (undated last), so the next thing due is always on top. Edit or delete any card inline.</p><span class="tag">TRIAGE</span></div>
+          <div class="card"><span class="ic">✓</span><h3>Complete = celebrate</h3><p>Checking a todo <b>soft-deletes</b> it — the row is kept, only incomplete ones are fetched — and fires a full-screen <b>Matrix "digital rain"</b> celebration.</p><span class="tag">DONE</span></div>
+        </div>
+        <p class="wf-note reveal" style="max-width:680px">A self-contained vertical slice — <code>todos</code> table → <code>TodoRepo</code> → <code>TodoService</code> → <code>/todos</code> REST routes → a Preact <code>TodoPane</code> — fully independent of the agent loop.</p>
       </div>
     </section>
 
