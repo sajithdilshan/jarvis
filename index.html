@@ -301,6 +301,7 @@
       <span class="links">
         <a href="#how">how it works</a>
         <a href="#workflows">workflows</a>
+        <a href="#improve">self-improving</a>
         <a href="#arch">architecture</a>
         <a href="#extend">extend</a>
         <a href="#setup">setup</a>
@@ -419,6 +420,50 @@
             <p class="wf-note">It can grant / revoke / refine permissions — that's how the loop learns what it may do.</p>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section id="improve">
+      <div class="wrap">
+        <div class="reveal">
+          <p class="eyebrow">IT LEARNS YOUR PRIORITIES</p>
+          <h2>A synthesizer that improves</h2>
+          <p class="lead">
+            Every briefing entry gets a priority — <b>high</b>, <b>normal</b>, <b>low</b>.
+            You rate whether that call was right; over time Jarvis mines those ratings to
+            refine how it briefs you. The model stays fixed — only the prompt it runs under
+            changes. A local, human-gated take on the self-improving-harness idea.
+          </p>
+        </div>
+
+        <div class="flow reveal">
+          <div class="flow-row">
+            <div class="node accent"><span class="nh">✦ SYNTHESIZE</span>sets priority high / normal / low</div>
+            <div class="arrow" style="align-self:center">→</div>
+            <div class="node"><span class="nh">▭ DASHBOARD</span>you rate 1–5 · optional comment</div>
+            <div class="arrow" style="align-self:center">→</div>
+            <div class="node"><span class="nh">briefing_log_feedback</span>the verifier signal</div>
+          </div>
+          <div class="arrow">▼</div>
+          <div class="flow-row">
+            <div class="node accent"><span class="nh">◈ improve-synthesizer</span>mine feedback → propose a minimal edit</div>
+            <div class="arrow" style="align-self:center">→</div>
+            <div class="node"><span class="nh">✓ YOU</span>review &amp; approve the diff</div>
+            <div class="arrow" style="align-self:center">→</div>
+            <div class="node"><span class="nh">↻ next poll</span>briefs you better</div>
+          </div>
+        </div>
+
+        <div class="reveal" style="margin-top:44px">
+          <p class="eyebrow">WHY IT CAN'T GAME ITSELF</p>
+          <div class="grid cols-2">
+            <div class="card"><h3>◆ Nothing is ever hidden</h3><p>Every entry is always shown — <b>high</b> expanded up top, <b>normal</b> / <b>low</b> in a collapsible box you still review. The worst a bad priority call can do is <i>mis-sort</i> an item, which stays visible and correctable — never silently bury it.</p></div>
+            <div class="card"><h3>◆ No reward-hacking</h3><p>Because suppression is impossible, the loop can't "improve its score" by hiding borderline items. Your correction of a mis-sorted entry is the single most valuable training signal — and it stays in front of you.</p></div>
+            <div class="card"><h3>◆ You are the gate</h3><p>Improvement runs as a <code>Claude Code</code> session, not a background job. The skill proposes a small, named edit tied to a feedback pattern; nothing changes until <b>you</b> approve it. Auditable and reversible.</p></div>
+            <div class="card"><h3>◆ Personal edits stay local</h3><p>Learned tweaks can hold sensitive context, so they're written to gitignored <code>*.local.md</code> overrides — composed onto the prompt at runtime, live on the next poll, and <b>never committed</b> to version control.</p></div>
+          </div>
+        </div>
+        <p class="wf-note reveal" style="max-width:680px">Two editable surfaces: <code>priority_policy.md</code> (the ranking, backed by your 1–5 ratings) and <code>prompt.md</code> (narrative, batching, framing — mined from your comments). The anti-suppression rule binds both: an edit may re-rank or re-word, never un-emit.</p>
       </div>
     </section>
 
@@ -626,7 +671,7 @@ uv run python -m <span class="k">jarvis.main</span>
       <div class="wrap">
         <div class="brand">JARV<b>I</b>S</div>
         <p>Local-first AI agentic personal assistant · your data never leaves your machine</p>
-        <p style="margin-top:6px;font-family:var(--font-display);letter-spacing:2px">[ wake // watch // act // brief ]</p>
+        <p style="margin-top:6px;font-family:var(--font-display);letter-spacing:2px">[ wake // watch // act // brief // learn ]</p>
         <p class="made-by">
           made with <span class="heart" aria-label="love">&#10084;</span> by
           <a href="https://sajith.me/" target="_blank" rel="noopener">Sajith Edirisinghe</a>
